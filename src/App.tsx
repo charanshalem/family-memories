@@ -1,3 +1,4 @@
+import { AdminPanel } from './components/AdminPanel';
 import { useEffect, useState, useCallback } from 'react';
 import { Plus, LogIn, LogOut, Heart, Sparkles, Loader2, ImageOff } from 'lucide-react';
 import { supabase, type Memory } from './lib/supabase';
