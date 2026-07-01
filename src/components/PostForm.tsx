@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback } from 'react';
 import { X, Plus, Loader2, UploadCloud, Check } from 'lucide-react';
+
 import { supabase, type Memory } from '../lib/supabase';
 import { uploadImage, isCloudinaryConfigured } from '../lib/cloudinary';
 
@@ -18,8 +19,10 @@ export function PostForm({ open, onClose, onCreated }: Props) {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [dragging, setDragging] = useState(false);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // ❌ Don't render modal if closed
   if (!open) return null;
 
   const reset = () => {
@@ -31,34 +34,35 @@ export function PostForm({ open, onClose, onCreated }: Props) {
     setDragging(false);
   };
 
-  const handleFile = useCallback(
-    async (file: File) => {
-      if (!file.type.startsWith('image/')) {
-        setError('Please choose an image file.');
-        return;
-      }
-      if (file.size > 15 * 1024 * 1024) {
-        setError('Image is too large (max 15 MB).');
-        return;
-      }
-      setError(null);
-      setUploading(true);
-      try {
-        const url = await uploadImage(file);
-        setImageUrl(url);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Upload failed');
-      } finally {
-        setUploading(false);
-      }
-    },
-    []
-  );
+  const handleFile = useCallback(async (file: File) => {
+    if (!file.type.startsWith('image/')) {
+      setError('Please choose an image file.');
+      return;
+    }
+
+    if (file.size > 15 * 1024 * 1024) {
+      setError('Image is too large (max 15 MB).');
+      return;
+    }
+
+    setError(null);
+    setUploading(true);
+
+    try {
+      const url = await uploadImage(file);
+      setImageUrl(url);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Upload failed');
+    } finally {
+      setUploading(false);
+    }
+  }, []);
 
   const onDrop = useCallback(
     (e: React.DragEvent) => {
       e.preventDefault();
       setDragging(false);
+
       const file = e.dataTransfer.files?.[0];
       if (file) handleFile(file);
     },
@@ -69,6 +73,7 @@ export function PostForm({ open, onClose, onCreated }: Props) {
     e.preventDefault();
     setError(null);
     setBusy(true);
+
     try {
       const { data, error } = await supabase
         .from('memories')
@@ -82,6 +87,7 @@ export function PostForm({ open, onClose, onCreated }: Props) {
         .single();
 
       if (error) throw error;
+
       onCreated(data as Memory);
       reset();
       onClose();
@@ -94,11 +100,16 @@ export function PostForm({ open, onClose, onCreated }: Props) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      {/* overlay */}
       <div
         className="absolute inset-0 bg-stone-900/60 backdrop-blur-sm"
         onClick={onClose}
       />
+
+      {/* modal */}
       <div className="relative max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white p-8 shadow-2xl ring-1 ring-stone-200">
+
+        {/* close button */}
         <button
           onClick={onClose}
           className="absolute right-4 top-4 text-stone-400 transition hover:text-stone-700"
@@ -107,6 +118,7 @@ export function PostForm({ open, onClose, onCreated }: Props) {
           <X size={20} />
         </button>
 
+        {/* header */}
         <div className="mb-6">
           <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-full bg-amber-100">
             <Plus className="text-amber-600" size={22} />
@@ -118,7 +130,8 @@ export function PostForm({ open, onClose, onCreated }: Props) {
         </div>
 
         <form onSubmit={submit} className="space-y-4">
-          {/* Image upload */}
+
+          {/* IMAGE UPLOAD */}
           <div>
             <label className="mb-1 block text-sm font-medium text-stone-700">
               Photo <span className="text-stone-400">(optional)</span>
@@ -139,6 +152,7 @@ export function PostForm({ open, onClose, onCreated }: Props) {
                 >
                   <X size={16} />
                 </button>
+
                 <div className="absolute bottom-2 left-2 flex items-center gap-1 rounded-full bg-emerald-500/90 px-2 py-1 text-xs font-medium text-white">
                   <Check size={12} /> Uploaded
                 </div>
@@ -175,6 +189,7 @@ export function PostForm({ open, onClose, onCreated }: Props) {
                 <p className="mt-0.5 text-xs text-stone-400">
                   PNG, JPG up to 15 MB
                 </p>
+
                 {!isCloudinaryConfigured() && (
                   <p className="mt-2 max-w-xs text-center text-xs text-rose-500">
                     Upload needs a Cloudinary upload preset in .env
@@ -182,6 +197,7 @@ export function PostForm({ open, onClose, onCreated }: Props) {
                 )}
               </div>
             )}
+
             <input
               ref={fileInputRef}
               type="file"
@@ -195,6 +211,7 @@ export function PostForm({ open, onClose, onCreated }: Props) {
             />
           </div>
 
+          {/* NAME */}
           <div>
             <label className="mb-1 block text-sm font-medium text-stone-700">
               Your name
@@ -208,6 +225,7 @@ export function PostForm({ open, onClose, onCreated }: Props) {
             />
           </div>
 
+          {/* TITLE */}
           <div>
             <label className="mb-1 block text-sm font-medium text-stone-700">
               Title
@@ -221,6 +239,7 @@ export function PostForm({ open, onClose, onCreated }: Props) {
             />
           </div>
 
+          {/* STORY */}
           <div>
             <label className="mb-1 block text-sm font-medium text-stone-700">
               The story
@@ -235,12 +254,14 @@ export function PostForm({ open, onClose, onCreated }: Props) {
             />
           </div>
 
+          {/* ERROR */}
           {error && (
             <p className="rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-600">
               {error}
             </p>
           )}
 
+          {/* SUBMIT */}
           <button
             type="submit"
             disabled={busy || uploading}
