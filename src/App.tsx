@@ -7,7 +7,7 @@ import { PostForm } from './components/PostForm';
 import { MemoryCard } from './components/MemoryCard';
 
 export default function App() {
-  const { session, signIn, signUp, signOut } = useAuth();
+  const { session, signIn, signUp, signOut } = useAuth(); 
   const [memories, setMemories] = useState<Memory[]>([]);
   const [loading, setLoading] = useState(true);
   const [authOpen, setAuthOpen] = useState(false);
