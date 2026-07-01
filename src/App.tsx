@@ -80,6 +80,10 @@ export default function App() {
   const isLoggedInApproved =
     !!session &&
     approved === true;
+  console.log("SESSION EMAIL:", session?.user?.email);
+  console.log("APPROVED:", approved);
+  console.log("OWNER EMAIL:", OWNER_EMAIL);
+  console.log("IS OWNER:", isOwner);
 
   if (session && approved === false) {
     return (
