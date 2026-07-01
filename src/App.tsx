@@ -15,14 +15,18 @@ export default function App() {
   const [postOpen, setPostOpen] = useState(false);
   const [approved, setApproved] = useState<boolean | null>(null);
 
+  const OWNER_EMAIL = "charanshalem@gmail.com";
+
   const loadMemories = useCallback(async () => {
     setLoading(true);
+
     const { data, error } = await supabase
       .from('memories')
       .select('*')
       .order('created_at', { ascending: false });
 
     if (!error && data) setMemories(data as Memory[]);
+
     setLoading(false);
   }, []);
 
@@ -57,16 +61,25 @@ export default function App() {
 
   const handleDelete = async (id: string) => {
     if (!confirm('Delete this memory? This cannot be undone.')) return;
-    const { error } = await supabase.from('memories').delete().eq('id', id);
-    if (!error) setMemories((prev) => prev.filter((m) => m.id !== id));
+
+    const { error } = await supabase
+      .from('memories')
+      .delete()
+      .eq('id', id);
+
+    if (!error) {
+      setMemories((prev) => prev.filter((m) => m.id !== id));
+    }
   };
 
-  const OWNER_EMAIL = "charanshalem@gmail.com";
+  const isOwner =
+    !!session &&
+    session.user.email === OWNER_EMAIL &&
+    approved === true;
 
-const isOwner =
-  !!session &&
-  session.user.email === OWNER_EMAIL &&
-  approved === true;
+  const isLoggedInApproved =
+    !!session &&
+    approved === true;
 
   if (session && approved === false) {
     return (
@@ -104,11 +117,14 @@ const isOwner =
           </div>
 
           <div className="flex items-center gap-2">
-            {isOwner ? (
+            {isLoggedInApproved ? (
               <>
-                <span className="hidden items-center gap-1 rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-700 sm:flex">
-                  <Sparkles size={13} /> Approved
-                </span>
+                {isOwner && (
+                  <span className="hidden items-center gap-1 rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-700 sm:flex">
+                    <Sparkles size={13} /> Owner
+                  </span>
+                )}
+
                 <button
                   onClick={signOut}
                   className="flex items-center gap-1.5 rounded-lg border border-stone-300 px-3 py-2 text-sm font-medium text-stone-600 hover:bg-stone-100"
@@ -150,6 +166,8 @@ const isOwner =
       </section>
 
       <main className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
+        {isOwner && <AdminPanel />}
+
         {loading ? (
           <div className="flex items-center justify-center py-24 text-stone-400">
             <Loader2 className="animate-spin" size={28} />
