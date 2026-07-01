@@ -4,7 +4,7 @@ import { supabase, type Memory } from './lib/supabase';
 import { useAuth } from './lib/auth';
 import { AuthModal } from './components/AuthModal';
 import { PostForm } from './components/PostForm';
-import { MemoryCard } from './components/MemoryCard';
+import { MemoryCard } from './components/MemoryCard'; 
 
 export default function App() {
   const { session, signIn, signUp, signOut } = useAuth(); 
