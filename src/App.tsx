@@ -61,7 +61,12 @@ export default function App() {
     if (!error) setMemories((prev) => prev.filter((m) => m.id !== id));
   };
 
-  const isOwner = !!session && approved === true;
+  const OWNER_EMAIL = "charanshalem@gmail.com";
+
+const isOwner =
+  !!session &&
+  session.user.email === OWNER_EMAIL &&
+  approved === true;
 
   if (session && approved === false) {
     return (
