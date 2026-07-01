@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Plus, LogOut, Heart, Loader2, ImageOff, Trash2 } from 'lucide-react';
+import { Plus, LogOut, Heart, Loader2, ImageOff } from 'lucide-react';
 import { supabase, type Memory } from './lib/supabase';
 import { PostForm } from './components/PostForm';
 import { MemoryCard } from './components/MemoryCard';
@@ -15,8 +15,8 @@ export default function App() {
   const [hasAccess, setHasAccess] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
 
-  const [familyInput, setFamilyInput] = useState('');
-  const [adminInput, setAdminInput] = useState('');
+  const [password, setPassword] = useState('');
+  const [adminPassword, setAdminPassword] = useState('');
   const [error, setError] = useState('');
 
   const loadMemories = useCallback(async () => {
@@ -28,7 +28,6 @@ export default function App() {
       .order('created_at', { ascending: false });
 
     if (!error && data) setMemories(data as Memory[]);
-
     setLoading(false);
   }, []);
 
@@ -49,7 +48,7 @@ export default function App() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Delete this memory?')) return;
+    if (!confirm('Delete this memory permanently?')) return;
 
     const { error } = await supabase
       .from('memories')
@@ -62,7 +61,7 @@ export default function App() {
   };
 
   const unlockFamily = () => {
-    if (familyInput === FAMILY_PASSWORD) {
+    if (password === FAMILY_PASSWORD) {
       setHasAccess(true);
       localStorage.setItem('family_access', 'true');
       setError('');
@@ -72,7 +71,7 @@ export default function App() {
   };
 
   const unlockAdmin = () => {
-    if (adminInput === ADMIN_PASSWORD) {
+    if (adminPassword === ADMIN_PASSWORD) {
       setIsAdmin(true);
       localStorage.setItem('admin_access', 'true');
       setError('');
@@ -90,29 +89,33 @@ export default function App() {
 
   if (!hasAccess) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-stone-100">
-        <div className="bg-white p-8 rounded-2xl shadow-xl w-[380px]">
-          <h1 className="text-2xl font-bold text-center mb-4">
-            Family Access Required
+      <div className="min-h-screen flex items-center justify-center bg-stone-100 p-4">
+        <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl p-8">
+          <h1 className="text-3xl font-bold text-center mb-3">
+            Family Access
           </h1>
+
+          <p className="text-center text-stone-500 mb-6">
+            Enter family password to view memories
+          </p>
 
           <input
             type="password"
-            placeholder="Enter family password"
-            value={familyInput}
-            onChange={(e) => setFamilyInput(e.target.value)}
-            className="w-full border rounded-lg px-4 py-3 mb-4"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Family password"
+            className="w-full rounded-lg border px-4 py-3 mb-4"
           />
 
           <button
             onClick={unlockFamily}
-            className="w-full bg-rose-500 text-white rounded-lg py-3"
+            className="w-full rounded-lg bg-rose-500 py-3 text-white"
           >
-            Unlock Memories
+            Unlock
           </button>
 
           {error && (
-            <p className="text-red-500 text-sm mt-3 text-center">{error}</p>
+            <p className="text-red-500 text-sm text-center mt-4">{error}</p>
           )}
         </div>
       </div>
@@ -121,31 +124,31 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-stone-50 text-stone-800">
-      <header className="sticky top-0 z-30 border-b border-stone-200 bg-stone-50">
+      <header className="sticky top-0 z-30 border-b border-stone-200 bg-white">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
           <div className="flex items-center gap-2">
             <Heart size={20} className="text-rose-500" fill="currentColor" />
             <span className="font-serif text-xl">Our Family Memories</span>
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex gap-2 items-center">
             {!isAdmin && (
-              <input
-                type="password"
-                placeholder="Admin password"
-                value={adminInput}
-                onChange={(e) => setAdminInput(e.target.value)}
-                className="border rounded px-3 py-2 text-sm"
-              />
-            )}
+              <>
+                <input
+                  type="password"
+                  placeholder="Admin password"
+                  value={adminPassword}
+                  onChange={(e) => setAdminPassword(e.target.value)}
+                  className="border rounded px-3 py-2 text-sm"
+                />
 
-            {!isAdmin && (
-              <button
-                onClick={unlockAdmin}
-                className="bg-amber-500 text-white px-3 py-2 rounded"
-              >
-                Admin Login
-              </button>
+                <button
+                  onClick={unlockAdmin}
+                  className="bg-amber-500 text-white px-3 py-2 rounded"
+                >
+                  Admin
+                </button>
+              </>
             )}
 
             <button
